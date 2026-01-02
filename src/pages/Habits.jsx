@@ -214,7 +214,7 @@ const Habits = () => {
 
         {loading && (
           <div className="text-center py-12">
-            <p className="text-slate-400">Loading habits...</p>
+            <p className="text-slate-400 saira">Loading habits...</p>
           </div>
         )}
 
