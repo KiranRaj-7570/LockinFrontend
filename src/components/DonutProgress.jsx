@@ -9,7 +9,7 @@ const DonutProgress = ({ percentage, size = 44, stroke = 6 }) => {
       ? "#22c55e" // green
       : percentage >= 40
       ? "#facc15" // yellow
-      : "#ef4444"; // red
+      : "#fc0505"; // red
 
   return (
     <svg width={size} height={size}>
@@ -21,6 +21,7 @@ const DonutProgress = ({ percentage, size = 44, stroke = 6 }) => {
         stroke="#27272a"
         strokeWidth={stroke}
         fill="none"
+       
       />
 
       {/* progress ring */}
@@ -36,6 +37,7 @@ const DonutProgress = ({ percentage, size = 44, stroke = 6 }) => {
         strokeLinecap="round"
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
         style={{ transition: "stroke-dashoffset 0.4s ease" }}
+        
       />
 
       {/* percentage text */}

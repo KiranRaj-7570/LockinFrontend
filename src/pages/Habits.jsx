@@ -5,6 +5,32 @@ import DayCell from "../components/DayCell";
 import MonthNavigator from "../components/MonthNavigator";
 import DonutProgress from "../components/DonutProgress";
 
+/* -------------------- SKELETONS -------------------- */
+
+const DayCellSkeleton = () => (
+  <div className="aspect-square rounded-md bg-black/20 animate-pulse" />
+);
+
+const HabitSkeleton = () => (
+  <div className="bg-linear-to-bl from-orange-600/60 via-orange-600/60 to-orange-500/60 border border-slate-800 rounded-xl p-4 sm:p-6 animate-pulse">
+    <div className="flex justify-between items-center mb-4">
+      <div>
+        <div className="h-4 w-32 bg-black/30 rounded mb-2" />
+        <div className="h-3 w-44 bg-black/20 rounded" />
+      </div>
+      <div className="h-14 w-14 rounded-full bg-black/30" />
+    </div>
+
+    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+      {Array.from({ length: 31 }).map((_, i) => (
+        <DayCellSkeleton key={i} />
+      ))}
+    </div>
+  </div>
+);
+
+/* -------------------- MAIN -------------------- */
+
 const Habits = () => {
   const today = new Date();
   const todayDay = today.getDate();
@@ -24,15 +50,14 @@ const Habits = () => {
   const [startYear, setStartYear] = useState(null);
 
   const isCurrentMonth = month === todayMonth && year === todayYear;
-
   const isPastMonth =
     year < todayYear || (year === todayYear && month < todayMonth);
-
   const isFutureMonth =
     year > todayYear || (year === todayYear && month > todayMonth);
 
   const canGoBack = !(year === startYear && month === startMonth);
 
+  /* -------------------- FETCH START -------------------- */
 
   useEffect(() => {
     const fetchStartMonth = async () => {
@@ -48,6 +73,7 @@ const Habits = () => {
     fetchStartMonth();
   }, []);
 
+  /* -------------------- FETCH HABITS -------------------- */
 
   useEffect(() => {
     const fetchHabits = async () => {
@@ -65,6 +91,7 @@ const Habits = () => {
     fetchHabits();
   }, [month, year]);
 
+  /* -------------------- CREATE HABIT -------------------- */
 
   const createHabit = async () => {
     if (!newHabit.trim()) return;
@@ -72,17 +99,20 @@ const Habits = () => {
     try {
       setAdding(true);
       await api.post("/habits", { name: newHabit.trim() });
-
       setNewHabit("");
 
+      setLoading(true);
       const res = await api.get(`/habits?month=${month}&year=${year}`);
       setHabits(res.data);
     } catch (err) {
       console.error("Create habit failed", err);
     } finally {
       setAdding(false);
+      setLoading(false);
     }
   };
+
+  /* -------------------- TOGGLE DAY -------------------- */
 
   const toggleDay = async (habitId, day) => {
     try {
@@ -114,15 +144,7 @@ const Habits = () => {
     }
   };
 
-  const openDeleteConfirm = (habit) => {
-    setHabitToDelete(habit);
-    setConfirmOpen(true);
-  };
-
-  const closeDeleteConfirm = () => {
-    setConfirmOpen(false);
-    setHabitToDelete(null);
-  };
+  /* -------------------- DELETE -------------------- */
 
   const confirmDeleteHabit = async () => {
     if (!habitToDelete) return;
@@ -135,13 +157,16 @@ const Habits = () => {
     } catch (err) {
       console.error("Failed to delete habit", err);
     } finally {
-      closeDeleteConfirm();
+      setConfirmOpen(false);
+      setHabitToDelete(null);
     }
   };
 
+  /* -------------------- MONTH NAV -------------------- */
+
   const onPrev = () => {
     if (!canGoBack) return;
-    
+    setLoading(true);
     if (month === 1) {
       setMonth(12);
       setYear((y) => y - 1);
@@ -151,6 +176,7 @@ const Habits = () => {
   };
 
   const onNext = () => {
+    setLoading(true);
     if (month === 12) {
       setMonth(1);
       setYear((y) => y + 1);
@@ -159,41 +185,47 @@ const Habits = () => {
     }
   };
 
+  /* -------------------- RENDER -------------------- */
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#292929] via-[#292929] to-[#141414] text-white">
+    <div className="min-h-screen bg-linear-to-b from-grey-900 to-grey-800 text-white">
       <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-        <div className="mb-8">
+        {/* Header */}
+        <div className="mb-6">
           <h1 className="text-4xl sm:text-5xl font-bold gugi bg-linear-to-r from-orange-600 to-red-400 bg-clip-text text-transparent mb-2">
             LOCK-IN
           </h1>
-          <p className="text-orange-400 font-light saira">Build habits, stay locked in.</p>
+          <p className="text-orange-500 font-light saira">
+            Build habits, stay locked in.
+          </p>
         </div>
+
+        {/* Add habit */}
         <div className="mb-8 flex flex-col sm:flex-row gap-3">
           <input
             value={newHabit}
             onChange={(e) => setNewHabit(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && createHabit()}
-            placeholder="Add a new habit (e.g., Workout, Read)"
-            className="flex-1 px-4 py-3 saira rounded-lg bg-[#F6E7C6] border border-black-700 text-[#222222] placeholder-slate-500 outline-none focus:border-orange-500 focus:ring-2 focus:ring-blue-500/20 transition"
+            onKeyDown={(e) => e.key === "Enter" && createHabit()}
+            placeholder="Add a new habit"
+            className="flex-1 px-4 py-3 saira rounded-lg bg-[#F6E7C6] text-[#222]"
           />
           <button
             onClick={createHabit}
             disabled={adding || !newHabit.trim()}
-            className="px-6 py-3 saira rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-80 disabled:hover:bg-orange-600 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 transition whitespace-nowrap"
+            className="px-6 py-3 rounded-lg bg-orange-600 hover:bg-orange-500 transition flex items-center gap-2"
           >
             <Plus size={18} />
-            <span className="hidden sm:inline">{adding ? "Adding..." : "Add Habit"}</span>
-            <span className="sm:hidden">{adding ? "..." : "Add"}</span>
+            {adding ? "Adding..." : "Add Habit"}
           </button>
         </div>
 
-     
         <MonthNavigator
           month={month}
           year={year}
           todayMonth={todayMonth}
           todayYear={todayYear}
           onChange={(m, y) => {
+            setLoading(true);
             setMonth(m);
             setYear(y);
           }}
@@ -202,63 +234,48 @@ const Habits = () => {
           canGoBack={canGoBack}
         />
 
-  
-        <h2 className="text-2xl saira font-bold mb-6 text-orange-500">Im Going to-</h2>
+        <h2 className="text-2xl saira font-bold mb-6 text-orange-600">
+          I'm going to —
+        </h2>
 
-   
-        {!loading && habits.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-slate-400 text-lg saira">No habits yet. Create one to get started!</p>
-          </div>
-        )}
-
+        {/* Skeletons */}
         {loading && (
-          <div className="text-center py-12">
-            <p className="text-slate-400 saira">Loading habits...</p>
+          <div className="space-y-4">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <HabitSkeleton key={i} />
+            ))}
           </div>
         )}
 
-      
+        {!loading && habits.length === 0 && (
+          <p className="text-center text-slate-400 py-12">
+            No habits yet. Create one to get started!
+          </p>
+        )}
+
         {!loading && habits.length > 0 && (
           <div className="space-y-4">
             {habits.map((habit) => (
               <div
                 key={habit.habitId}
-                className="bg-orange-500 backdrop-blur border border-slate-800 rounded-xl p-4 sm:p-6 hover:border-slate-700 transition"
+                className="bg-linear-to-bl from-orange-600 via-orange-600 to-orange-500 rounded-xl p-4 sm:p-6"
               >
-            
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg saira font-semibold text-[#222]">{habit.name}</h3>
-                    <p className="text-sm text-[#222] mt-1 saira">
-                      {habit.completedDays} of {habit.totalDays} days completed
+                <div className="flex justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#222]">
+                      {habit.name}
+                    </h3>
+                    <p className="text-sm text-[#222]">
+                      {habit.completedDays} / {habit.totalDays}
                     </p>
                   </div>
-
-                  <div className="flex items-center gap-4">
-                    <DonutProgress percentage={habit.percentage} />
-                    <button
-                      onClick={() => openDeleteConfirm(habit)}
-                      disabled={isFutureMonth}
-                      className={`p-2 rounded-lg transition ${
-                        isFutureMonth
-                          ? "text-slate-800 cursor-not-allowed opacity-80"
-                          : "text-[#222] hover:text-red-900 bg-red-500/30"
-                      }`}
-                      title={isFutureMonth ? "Cannot delete habits in future months" : "Delete habit"}
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
+                  <DonutProgress percentage={habit.percentage} />
                 </div>
 
-                
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                <div className="flex flex-wrap gap-2">
                   {Array.from({ length: habit.totalDays }, (_, i) => {
                     const day = i + 1;
-
                     const isFutureDay = isCurrentMonth && day > todayDay;
-
                     const disabled =
                       isPastMonth || isFutureMonth || isFutureDay;
 
@@ -284,23 +301,26 @@ const Habits = () => {
         )}
       </div>
 
+      {/* Delete modal */}
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-sm w-full animate-in fade-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-bold mb-2">Delete Habit?</h2>
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center">
+          <div className="bg-[#222] rounded-xl p-6 w-full max-w-sm">
+            <h2 className="text-xl font-bold text-red-600 mb-2">
+              Delete Habit?
+            </h2>
             <p className="text-slate-400 mb-6">
-              Are you sure you want to delete "{habitToDelete?.name}"? This action cannot be undone.
+              Delete "{habitToDelete?.name}" permanently?
             </p>
             <div className="flex gap-3">
               <button
-                onClick={closeDeleteConfirm}
-                className="flex-1 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition font-medium"
+                onClick={() => setConfirmOpen(false)}
+                className="flex-1 bg-[#F6E7C6] text-black py-2 rounded-lg"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDeleteHabit}
-                className="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 transition font-medium"
+                className="flex-1 bg-red-600 py-2 rounded-lg"
               >
                 Delete
               </button>
