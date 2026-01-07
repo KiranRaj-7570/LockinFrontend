@@ -27,44 +27,42 @@ const MonthNavigator = ({
   return (
     <div className="mb-8">
       {isMobile ? (
-
-        <div className="bg-[#222] border-[0.1px] border-orange-500 backdrop-blur rounded-xl p-4">
+        <div className="bg-slate-800/50 border border-slate-700/50 backdrop-blur rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <button
               onClick={onPrev}
               disabled={!canGoBack}
               className={`p-2 rounded-lg transition ${
                 !canGoBack
-                  ? "text-orange-600 cursor-not-allowed opacity-50"
-                  : "hover:bg-slate-700 text-orange-500"
+                  ? "text-slate-500 cursor-not-allowed opacity-50"
+                  : "hover:bg-slate-700 text-orange-400 hover:text-orange-300"
               }`}
               title={!canGoBack ? "No earlier habits available" : "Previous month"}
             >
-              <ChevronLeft size={22} />
+              <ChevronLeft size={24} />
             </button>
             <div className="text-center">
-              <h2 className="text-2xl saira text-[#F6E7C6] font-bold">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white">
                 {MONTHS[month - 1]}
               </h2>
-              <p className="text-sm saira text-[#F6E7C6]">{year}</p>
+              <p className="text-sm text-slate-400">{year}</p>
             </div>
             <button
               onClick={onNext}
-              className="p-2 hover:bg-slate-700 rounded-lg transition text-orange-500"
+              className="p-2 hover:bg-slate-700 rounded-lg transition text-orange-400 hover:text-orange-300"
               title="Next month"
             >
-              <ChevronRight size={22} />
+              <ChevronRight size={24} />
             </button>
           </div>
         </div>
       ) : (
-
         <div>
-          <div className="text-center text-lg text-[#F6E7C6] mb-3 saira tracking-wide">
+          <div className="text-center text-lg text-slate-300 mb-4 font-semibold tracking-wide">
             {year}
           </div>
           <div className="overflow-x-auto no-scrollbar">
-            <div className="grid grid-cols-12 gap-2 min-w-150">
+            <div className="grid grid-cols-12 gap-2 min-w-max">
               {MONTHS.map((label, i) => {
                 const m = i + 1;
                 const isCurrent = m === month;
@@ -78,16 +76,16 @@ const MonthNavigator = ({
                     onClick={() => onChange(m, year)}
                     disabled={isDisabled}
                     className={`
-                      py-2 rounded-md text-sm font-medium
+                      py-2 px-3 rounded-lg text-sm font-semibold
                       transition-all duration-200
                       ${
                         isCurrent
-                          ? "bg-orange-600 text-white shadow "
+                          ? "bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50"
                           : isDisabled
-                          ? "bg-slate-900 text-slate-600 cursor-not-allowed opacity-50"
+                          ? "bg-slate-700/30 text-slate-500 cursor-not-allowed opacity-50"
                           : isFuture
-                          ? "bg-[#222] text-slate-500 hover:border-[#ff7b10] border-[0.1px] border-[#424242]"
-                          : "bg-[#222] text-[#F6E7C6] hover:bg-slate-900 border-[0.1px] border-[#ff7b10] hover:text-white"
+                          ? "bg-slate-700/30 text-slate-400 hover:bg-slate-700/50 border border-slate-600/30"
+                          : "bg-slate-800/50 text-slate-300 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600 hover:text-white"
                       }
                     `}
                     title={
