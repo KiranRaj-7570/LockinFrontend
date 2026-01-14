@@ -211,12 +211,12 @@ const Habits = () => {
   /* -------------------- RENDER -------------------- */
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white saira">
       <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
         {/* Header with Logout */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-orange-500 via-red-500 to-orange-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl gugi sm:text-5xl font-bold bg-linear-to-r from-orange-500 via-red-500 to-orange-400 bg-clip-text text-transparent mb-2">
               LOCK-IN
             </h1>
             <p className="text-orange-400 font-light text-sm sm:text-base">

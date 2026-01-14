@@ -48,7 +48,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-500 via-orange-500 to-yellow-500 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen saira flex items-center justify-center bg-linear-to-br from-red-500 via-orange-500 to-yellow-500 px-4 py-8 sm:px-6 lg:px-8">
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
