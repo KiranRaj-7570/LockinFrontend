@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { Plus, Trash2, LogOut } from "lucide-react";
+import { Plus, Trash2, LogOut, Pencil } from "lucide-react";
 import api from "../api/axios";
 import DayCell from "../components/DayCell";
 import MonthNavigator from "../components/MonthNavigator";
@@ -48,15 +48,25 @@ const Habits = () => {
   const [adding, setAdding] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [habitToDelete, setHabitToDelete] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [habitToEdit, setHabitToEdit] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [startMonth, setStartMonth] = useState(null);
   const [startYear, setStartYear] = useState(null);
+  const [pendingDays, setPendingDays] = useState({});
 
   const isCurrentMonth = month === todayMonth && year === todayYear;
   const isPastMonth =
     year < todayYear || (year === todayYear && month < todayMonth);
   const isFutureMonth =
     year > todayYear || (year === todayYear && month > todayMonth);
+
+  const yesterday = new Date(todayYear, todayMonth - 1, todayDay - 1);
+  const isTodayMonth = month === todayMonth && year === todayYear;
+  const isYesterdayMonth =
+    month === yesterday.getMonth() + 1 && year === yesterday.getFullYear();
 
   const canGoBack = !(year === startYear && month === startMonth);
 
@@ -125,7 +135,23 @@ const Habits = () => {
   /* -------------------- TOGGLE DAY -------------------- */
 
   const toggleDay = async (habitId, day) => {
+    let previousHabits;
+    const key = `${habitId}:${day}`;
     try {
+      setPendingDays((prev) => ({ ...prev, [key]: true }));
+
+      setHabits((prev) => {
+        previousHabits = prev;
+        return prev.map((h) => {
+          if (h.habitId !== habitId) return h;
+          const nextDays = { ...(h.days || {}) };
+          nextDays[day] = !nextDays[day];
+          const completedDays = Object.values(nextDays).filter(Boolean).length;
+          const percentage = Math.round((completedDays / h.totalDays) * 100);
+          return { ...h, days: nextDays, completedDays, percentage };
+        });
+      });
+
       const res = await api.patch(`/habits/${habitId}/toggle`, {
         day,
         month,
@@ -151,6 +177,15 @@ const Habits = () => {
       );
     } catch (err) {
       console.error("Toggle failed", err);
+      if (previousHabits) {
+        setHabits(previousHabits);
+      }
+    } finally {
+      setPendingDays((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
     }
   };
 
@@ -171,6 +206,44 @@ const Habits = () => {
     } finally {
       setConfirmOpen(false);
       setHabitToDelete(null);
+    }
+  };
+
+  /* -------------------- EDIT -------------------- */
+
+  const openEdit = (habit) => {
+    setHabitToEdit(habit);
+    setEditName(habit.name);
+    setEditOpen(true);
+  };
+
+  const confirmEditHabit = async () => {
+    if (!habitToEdit) return;
+    const nextName = editName.trim();
+    if (!nextName) return;
+
+    try {
+      setUpdating(true);
+      const res = await api.patch(`/habits/${habitToEdit.habitId}`, {
+        name: nextName,
+      });
+
+      if (res.data.success) {
+        setHabits((prev) =>
+          prev.map((h) =>
+            h.habitId === habitToEdit.habitId
+              ? { ...h, name: res.data.name || nextName }
+              : h
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Failed to update habit", err);
+    } finally {
+      setUpdating(false);
+      setEditOpen(false);
+      setHabitToEdit(null);
+      setEditName("");
     }
   };
 
@@ -320,6 +393,13 @@ const Habits = () => {
                   <div className="flex items-center gap-4">
                     <DonutProgress percentage={habit.percentage} />
                     <button
+                      onClick={() => openEdit(habit)}
+                      className="p-2 sm:p-3 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 text-slate-300 hover:text-white transition-all duration-200 border border-slate-500/20 hover:border-slate-500/40"
+                      title="Edit habit"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                    <button
                       onClick={() => {
                         setHabitToDelete(habit);
                         setConfirmOpen(true);
@@ -336,9 +416,11 @@ const Habits = () => {
                 <div className="flex flex-wrap gap-2">
                   {Array.from({ length: habit.totalDays }, (_, i) => {
                     const day = i + 1;
-                    const isFutureDay = isCurrentMonth && day > todayDay;
-                    const disabled =
-                      isPastMonth || isFutureMonth || isFutureDay;
+                    const isToday = isTodayMonth && day === todayDay;
+                    const isYesterday =
+                      isYesterdayMonth && day === yesterday.getDate();
+                    const disabled = !(isToday || isYesterday);
+                    const isPending = !!pendingDays[`${habit.habitId}:${day}`];
 
                     return (
                       <DayCell
@@ -347,8 +429,9 @@ const Habits = () => {
                         active={habit.days?.[day]}
                         disabled={disabled}
                         isToday={isCurrentMonth && day === todayDay}
+                        isPending={isPending}
                         onClick={
-                          !disabled
+                          !disabled && !isPending
                             ? () => toggleDay(habit.habitId, day)
                             : undefined
                         }
@@ -388,6 +471,47 @@ const Habits = () => {
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base shadow-lg hover:shadow-red-500/30"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Habit Modal */}
+      {editOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-fadeIn">
+            <h2 className="text-xl sm:text-2xl font-bold text-orange-400 mb-2">
+              Edit Habit
+            </h2>
+            <p className="text-slate-300 mb-4 text-sm sm:text-base">
+              Update the habit name below.
+            </p>
+            <input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && confirmEditHabit()}
+              disabled={updating}
+              className="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 hover:border-slate-600 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 text-white placeholder-slate-500 text-sm sm:text-base transition-all duration-200 disabled:opacity-50 outline-0"
+              placeholder="Habit name"
+            />
+            <div className="flex flex-col sm:flex-row gap-3 mt-5">
+              <button
+                onClick={() => {
+                  setEditOpen(false);
+                  setHabitToEdit(null);
+                  setEditName("");
+                }}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmEditHabit}
+                disabled={updating || !editName.trim()}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base shadow-lg hover:shadow-orange-500/30"
+              >
+                {updating ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
