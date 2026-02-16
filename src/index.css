@@ -1,10 +1,102 @@
 @import "tailwindcss";
 
 
-.gugi{
-    font-family: "Gugi", sans-serif;
+.gugi {
+  font-family: "Gugi", sans-serif;
 }
 
-.saira{
-    font-family: "Saira", sans-serif;
+.saira {
+  font-family: "Saira", sans-serif;
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 200ms ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 200ms ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes hide {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes swipeOut {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-hide {
+  animation: hide 100ms ease-in;
+}
+
+.animate-swipeOut {
+  animation: swipeOut 100ms ease-out;
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-indeterminate {
+  animation: indeterminate 1.5s infinite linear;
 }

@@ -1,4 +1,6 @@
-const DonutProgress = ({ percentage, size = 56, stroke = 5 }) => {
+import { memo } from "react";
+
+const DonutProgress = memo(({ percentage, size = 56, stroke = 5 }) => {
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
@@ -8,8 +10,8 @@ const DonutProgress = ({ percentage, size = 56, stroke = 5 }) => {
     percentage >= 70
       ? "#22c55e" // green
       : percentage >= 40
-      ? "#eab308" // yellow
-      : "#ef4444"; // red
+        ? "#eab308" // yellow
+        : "#ef4444"; // red
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -53,6 +55,6 @@ const DonutProgress = ({ percentage, size = 56, stroke = 5 }) => {
       </svg>
     </div>
   );
-};
+});
 
 export default DonutProgress;
